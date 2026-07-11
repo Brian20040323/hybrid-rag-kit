@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"/><title>Hybrid RAG Ablation</title>
+<style>
+body{font-family:Segoe UI,sans-serif;background:#0f1419;color:#e7ecf3;padding:32px}
+table{border-collapse:collapse;width:100%;max-width:900px}
+th,td{border:1px solid #2a3a55;padding:10px;text-align:left}
+th{background:#1a2332}
+tr:nth-child(even){background:#141b26}
+h1{letter-spacing:-0.02em}
+</style></head>
+<body>
+<h1>Hybrid RAG Kit — Ablation Report</h1>
+<p>v0.2 independent retrieval stack (BM25 + TF-IDF + RRF + expansion + MMR)</p>
+<table>
+<thead><tr><th>fusion</th><th>expand</th><th>mmr</th><th>chunks</th><th>P@3</th><th>R@3</th><th>MRR</th></tr></thead>
+<tbody><tr><td>rrf</td><td>False</td><td>False</td><td>5</td><td>0.533</td><td>1.000</td><td>1.000</td></tr><tr><td>rrf</td><td>True</td><td>False</td><td>5</td><td>0.400</td><td>1.000</td><td>1.000</td></tr><tr><td>rrf</td><td>True</td><td>True</td><td>5</td><td>0.333</td><td>1.000</td><td>1.000</td></tr><tr><td>linear</td><td>True</td><td>True</td><td>5</td><td>0.400</td><td>1.000</td><td>1.000</td></tr></tbody>
+</table>
+</body></html>

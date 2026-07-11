@@ -1,7 +1,8 @@
-"""Ablation: fusion mode + alpha sweep, write Markdown report."""
+"""Ablation: fusion + expansion + MMR, write Markdown + HTML report."""
 
 from __future__ import annotations
 
+import html
 import sys
 from pathlib import Path
 
@@ -41,7 +42,6 @@ def evaluate(pipe: RAGPipeline, cases: list[dict], k: int = 3) -> dict:
     for case in cases:
         hits = pipe.search(case["query"], top_k=k)
         ranked = [source_id(h.doc_id) for h in hits]
-        # dedupe sources while keeping order
         seen, ordered = set(), []
         for s in ranked:
             if s not in seen:
@@ -58,37 +58,83 @@ def evaluate(pipe: RAGPipeline, cases: list[dict], k: int = 3) -> dict:
 def main() -> None:
     cases = yaml.safe_load((Path(__file__).with_name("cases.yaml")).read_text(encoding="utf-8"))["cases"]
     rows = []
-    for fusion in ("rrf", "linear"):
-        alphas = [0.55] if fusion == "rrf" else [0.3, 0.5, 0.7]
-        for alpha in alphas:
-            pipe = RAGPipeline(fusion=fusion, alpha=alpha)
-            n = pipe.ingest_dir(ROOT / "corpus")
-            metrics = evaluate(pipe, cases, k=3)
-            rows.append({"fusion": fusion, "alpha": alpha, "chunks": n, **metrics})
-            print(f"fusion={fusion} alpha={alpha} chunks={n} P@3={metrics['p']:.3f} R@3={metrics['r']:.3f} MRR={metrics['mrr']:.3f}")
+    configs = [
+        {"fusion": "rrf", "alpha": 0.55, "use_query_expansion": False, "use_mmr": False},
+        {"fusion": "rrf", "alpha": 0.55, "use_query_expansion": True, "use_mmr": False},
+        {"fusion": "rrf", "alpha": 0.55, "use_query_expansion": True, "use_mmr": True},
+        {"fusion": "linear", "alpha": 0.5, "use_query_expansion": True, "use_mmr": True},
+    ]
+    for cfg in configs:
+        pipe = RAGPipeline(**cfg)
+        n = pipe.ingest_dir(ROOT / "corpus")
+        metrics = evaluate(pipe, cases, k=3)
+        row = {**cfg, "chunks": n, **metrics}
+        rows.append(row)
+        print(
+            f"fusion={cfg['fusion']} expand={cfg['use_query_expansion']} mmr={cfg['use_mmr']} "
+            f"P@3={metrics['p']:.3f} R@3={metrics['r']:.3f} MRR={metrics['mrr']:.3f}"
+        )
 
     report = Path(__file__).with_name("ABLATION_REPORT.md")
     lines = [
-        "# Ablation Report",
+        "# Ablation Report (v0.2)",
         "",
-        "| fusion | alpha | chunks | P@3 | R@3 | MRR |",
-        "|--------|------:|-------:|----:|----:|----:|",
+        "| fusion | expand | mmr | chunks | P@3 | R@3 | MRR |",
+        "|--------|:------:|:---:|-------:|----:|----:|----:|",
     ]
     for r in rows:
         lines.append(
-            f"| {r['fusion']} | {r['alpha']} | {r['chunks']} | {r['p']:.3f} | {r['r']:.3f} | {r['mrr']:.3f} |"
+            f"| {r['fusion']} | {r['use_query_expansion']} | {r['use_mmr']} | {r['chunks']} | "
+            f"{r['p']:.3f} | {r['r']:.3f} | {r['mrr']:.3f} |"
         )
     lines += [
         "",
         "## Takeaway",
         "",
-        "- `rrf` 不依赖手工 alpha，排序更稳，适合作为默认融合。",
-        "- `linear` 可在消融中观察稀疏/稠密（TF-IDF）权重敏感度。",
-        "- 指标按 **source 文档** 聚合（chunk id → source），更贴近真实 RAG。",
+        "- Query expansion + MMR are independent knobs on top of hybrid fusion.",
+        "- RRF remains a strong default; expansion often helps recall on short corpora.",
+        "- Metrics aggregate at **source-document** level (chunk → source).",
         "",
     ]
     report.write_text("\n".join(lines), encoding="utf-8")
+
+    html_path = Path(__file__).with_name("ABLATION_REPORT.html")
+    rows_html = "".join(
+        "<tr>"
+        f"<td>{html.escape(str(r['fusion']))}</td>"
+        f"<td>{r['use_query_expansion']}</td>"
+        f"<td>{r['use_mmr']}</td>"
+        f"<td>{r['chunks']}</td>"
+        f"<td>{r['p']:.3f}</td>"
+        f"<td>{r['r']:.3f}</td>"
+        f"<td>{r['mrr']:.3f}</td>"
+        "</tr>"
+        for r in rows
+    )
+    html_path.write_text(
+        f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8"/><title>Hybrid RAG Ablation</title>
+<style>
+body{{font-family:Segoe UI,sans-serif;background:#0f1419;color:#e7ecf3;padding:32px}}
+table{{border-collapse:collapse;width:100%;max-width:900px}}
+th,td{{border:1px solid #2a3a55;padding:10px;text-align:left}}
+th{{background:#1a2332}}
+tr:nth-child(even){{background:#141b26}}
+h1{{letter-spacing:-0.02em}}
+</style></head>
+<body>
+<h1>Hybrid RAG Kit — Ablation Report</h1>
+<p>v0.2 independent retrieval stack (BM25 + TF-IDF + RRF + expansion + MMR)</p>
+<table>
+<thead><tr><th>fusion</th><th>expand</th><th>mmr</th><th>chunks</th><th>P@3</th><th>R@3</th><th>MRR</th></tr></thead>
+<tbody>{rows_html}</tbody>
+</table>
+</body></html>
+""",
+        encoding="utf-8",
+    )
     print("wrote", report)
+    print("wrote", html_path)
 
 
 if __name__ == "__main__":

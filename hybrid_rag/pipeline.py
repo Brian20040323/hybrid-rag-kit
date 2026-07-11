@@ -5,13 +5,24 @@ from __future__ import annotations
 from pathlib import Path
 
 from .chunking import chunk_text
+from .diversity import expand_query, mmr_select
 from .retriever import Document, Hit, HybridRetriever
 
 
 class RAGPipeline:
-    def __init__(self, fusion: str = "rrf", alpha: float = 0.55) -> None:
+    def __init__(
+        self,
+        fusion: str = "rrf",
+        alpha: float = 0.55,
+        use_query_expansion: bool = True,
+        use_mmr: bool = True,
+        mmr_lambda: float = 0.7,
+    ) -> None:
         self.fusion = fusion  # type: ignore[assignment]
         self.alpha = alpha
+        self.use_query_expansion = use_query_expansion
+        self.use_mmr = use_mmr
+        self.mmr_lambda = mmr_lambda
         self.docs: list[Document] = []
         self.retriever: HybridRetriever | None = None
 
@@ -45,7 +56,18 @@ class RAGPipeline:
     def search(self, query: str, top_k: int = 5) -> list[Hit]:
         if not self.retriever:
             raise RuntimeError("pipeline has no index; call ingest_* first")
-        return self.retriever.search(query, top_k=top_k)
+
+        variants = expand_query(query) if self.use_query_expansion else [query]
+        pooled: dict[str, Hit] = {}
+        for v in variants:
+            for h in self.retriever.search(v, top_k=max(top_k * 3, 10)):
+                prev = pooled.get(h.doc_id)
+                if prev is None or h.score > prev.score:
+                    pooled[h.doc_id] = h
+        candidates = sorted(pooled.values(), key=lambda x: x.score, reverse=True)
+        if self.use_mmr:
+            return mmr_select(query, candidates, top_k=top_k, lambda_mult=self.mmr_lambda)
+        return candidates[:top_k]
 
     def answer_with_citations(self, query: str, top_k: int = 3) -> dict:
         hits = self.search(query, top_k=top_k)
@@ -59,9 +81,15 @@ class RAGPipeline:
             }
             for i, h in enumerate(hits)
         ]
-        # Extractive "answer": top snippet + citation markers (no LLM required)
         answer = (
-            f"基于检索结果：{hits[0].text if hits else '未找到相关内容。'}"
+            f"Based on retrieval: {hits[0].text if hits else 'No relevant content found.'}"
             + (f" [{1}]" if hits else "")
         )
-        return {"query": query, "answer": answer, "context": context, "citations": citations, "hits": hits}
+        return {
+            "query": query,
+            "expanded": expand_query(query) if self.use_query_expansion else [query],
+            "answer": answer,
+            "context": context,
+            "citations": citations,
+            "hits": hits,
+        }
