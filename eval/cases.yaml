@@ -1,11 +1,11 @@
 cases:
-  - query: "混合检索 RAG"
-    relevant: ["d2", "d5"]
-  - query: "ReAct 工具调用"
-    relevant: ["d1"]
-  - query: "MCP 协议 工具"
-    relevant: ["d3"]
-  - query: "SSE 流式 FastAPI"
-    relevant: ["d4"]
-  - query: "Precision Recall 评测"
-    relevant: ["d5", "d2"]
+  - query: "混合检索 BM25 RRF 如何提升 RAG"
+    relevant: ["rag"]
+  - query: "ReAct 工具调用 Thought Observation"
+    relevant: ["react"]
+  - query: "MCP tools/list resources 协议"
+    relevant: ["mcp"]
+  - query: "SSE Trace 可观测 Agent"
+    relevant: ["observability"]
+  - query: "切块 chunking 与 Precision Recall 评测"
+    relevant: ["rag"]
