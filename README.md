@@ -1,44 +1,109 @@
 # Hybrid RAG Kit
 
-> 教学/作品集级 **混合检索流水线**：Markdown 切块 · Okapi BM25 · TF-IDF · **RRF / Linear 融合** · 轻量重排 · 引用组装 · **消融评测报告**。  
-> 无 Faiss / Chroma / 云向量库依赖。
+[![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![RAG](https://img.shields.io/badge/RAG-BM25%20%2B%20TF--IDF%20%2B%20RRF-purple.svg)](#features)
+[![Eval](https://img.shields.io/badge/eval-P%40K%20%7C%20R%40K%20%7C%20MRR-informational.svg)](#ablation--metrics)
+[![No Vector DB](https://img.shields.io/badge/deps-no%20Faiss%20%2F%20Chroma-success.svg)](#honest-boundaries)
+[![Stars](https://img.shields.io/github/stars/Brian20040323/hybrid-rag-kit?style=social)](https://github.com/Brian20040323/hybrid-rag-kit)
 
-## 亮点（可写进简历）
+> A **from-scratch hybrid retrieval pipeline** for modern RAG systems:  
+> **chunking → Okapi BM25 → TF-IDF → RRF / linear fusion → light rerank → citations → ablation report**.  
+> Zero vector-database dependency. Built to make retrieval quality **measurable**.
 
-1. **完整 ingest→chunk→index→retrieve→cite 管线**，不是单文件 toy search  
-2. **RRF（倒数排名融合）** 作为默认融合，并对 `linear(alpha)` 做消融对比  
-3. **按 source 文档聚合** 的 P@K / R@K / MRR（chunk 评测更贴近真实 RAG）  
-4. **可解释 Hit**：同时返回 bm25 / tfidf / rrf / final score  
+**Related repos:** [lite-react-agent](https://github.com/Brian20040323/lite-react-agent) · [mcp-knowledge-bridge](https://github.com/Brian20040323/mcp-knowledge-bridge)
 
-## 架构
+---
+
+## Why this stands out
+
+Vector DBs and embedding APIs are everywhere — but many teams still fail at the basics: **chunking, fusion, and eval**.  
+This kit focuses on the parts that actually move RAG quality:
+
+| Feature | Detail | Hot topic |
+|---------|--------|-----------|
+| **Full pipeline** | ingest → chunk → index → retrieve → cite | Production RAG topology |
+| **Hybrid fusion** | BM25 + TF-IDF with **RRF** (default) or linear α | Hybrid search / RRF |
+| **Explainable hits** | per-doc `bm25`, `tfidf`, `rrf`, final score | Interpretable retrieval |
+| **Ablation harness** | compare fusion modes → Markdown report | RAG evaluation |
+| **Source-level metrics** | P@K / R@K / MRR aggregated by document | Offline RAG eval |
+
+---
+
+## Architecture
 
 ```mermaid
 flowchart TB
-  MD[corpus/*.md] --> C[chunk_text]
-  C --> IDX[BM25 + TF-IDF]
+  MD[corpus/*.md] --> C[Chunker]
+  C --> IDX[BM25 Index + TF-IDF]
   Q[Query] --> F[Fusion: RRF or Linear]
   IDX --> F
   F --> RR[Lexical Rerank]
-  RR --> Cite[answer_with_citations]
+  RR --> Cite[Citations]
   Cite --> Eval[Ablation Report]
 ```
 
-## 快速开始
+---
+
+## Quickstart
 
 ```bash
+git clone https://github.com/Brian20040323/hybrid-rag-kit.git
 cd hybrid-rag-kit
 pip install -r requirements.txt
+
 python -m examples.demo_search
 python eval/run_eval.py
-# 生成 eval/ABLATION_REPORT.md
+# writes eval/ABLATION_REPORT.md
 ```
 
-## 诚实边界
+### Python API
 
-- TF-IDF / BM25 ≠ 生产稠密向量检索  
-- 重排是轻量词法加成，不是 Cross-Encoder  
-- 适合证明你理解 RAG 评测与融合，而不是替代企业知识库
+```python
+from hybrid_rag import RAGPipeline
+
+pipe = RAGPipeline(fusion="rrf")
+pipe.ingest_dir("corpus")
+result = pipe.answer_with_citations("How does hybrid retrieval help RAG without a vector DB?", top_k=3)
+print(result["answer"])
+print(result["citations"])
+```
+
+---
+
+## Ablation & metrics
+
+`eval/run_eval.py` sweeps fusion strategies and prints / writes:
+
+| fusion | what it tests |
+|--------|----------------|
+| `rrf` | Reciprocal Rank Fusion (rank-based, α-free) |
+| `linear` | α·BM25 + (1-α)·TF-IDF sensitivity |
+
+Metrics: **Precision@K**, **Recall@K**, **MRR** (source-document aggregated).
+
+---
+
+## Honest boundaries
+
+- Sparse hybrid ≠ dense embedding retrieval (no OpenAI/Voyage vectors here on purpose)  
+- Lexical rerank ≠ cross-encoder reranker  
+- Ideal for **learning, prototyping, interview storytelling**, not replacing enterprise search
+
+If you want the agent layer on top, pair with **lite-react-agent**.  
+If you want IDE/tool protocol exposure, pair with **mcp-knowledge-bridge**.
+
+---
+
+## Roadmap
+
+- [ ] Optional dense retriever adapter (plug-in embeddings)  
+- [ ] Cross-encoder rerank hook  
+- [ ] HTML interactive ablation dashboard  
+- [ ] BEIR-style dataset loaders  
+
+---
 
 ## License
 
-MIT
+MIT © Brian20040323
