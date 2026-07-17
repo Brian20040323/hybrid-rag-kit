@@ -59,6 +59,10 @@ def main() -> None:
     cases = yaml.safe_load((Path(__file__).with_name("cases.yaml")).read_text(encoding="utf-8"))["cases"]
     rows = []
     configs = [
+        # baselines (single channel)
+        {"fusion": "bm25", "alpha": 1.0, "use_query_expansion": False, "use_mmr": False},
+        {"fusion": "tfidf", "alpha": 0.0, "use_query_expansion": False, "use_mmr": False},
+        # hybrid ablations
         {"fusion": "rrf", "alpha": 0.55, "use_query_expansion": False, "use_mmr": False},
         {"fusion": "rrf", "alpha": 0.55, "use_query_expansion": True, "use_mmr": False},
         {"fusion": "rrf", "alpha": 0.55, "use_query_expansion": True, "use_mmr": True},
@@ -75,6 +79,33 @@ def main() -> None:
             f"P@3={metrics['p']:.3f} R@3={metrics['r']:.3f} MRR={metrics['mrr']:.3f}"
         )
 
+    by_key = {
+        (r["fusion"], r["use_query_expansion"], r["use_mmr"]): r for r in rows
+    }
+    bm25 = by_key.get(("bm25", False, False))
+    tfidf = by_key.get(("tfidf", False, False))
+    rrf = by_key.get(("rrf", False, False))
+    lift_lines = []
+    if bm25 and tfidf and rrf:
+        def pct(a: float, b: float) -> str:
+            if abs(b) <= 1e-12:
+                return "n/a"
+            return f"{(a - b) / b * 100:+.1f}%"
+
+        lift_lines = [
+            "",
+            "## Baseline comparison (same corpus / cases, no expand / no MMR)",
+            "",
+            f"- Pure BM25:  P@3={bm25['p']:.3f}, R@3={bm25['r']:.3f}, MRR={bm25['mrr']:.3f}",
+            f"- Pure TF-IDF: P@3={tfidf['p']:.3f}, R@3={tfidf['r']:.3f}, MRR={tfidf['mrr']:.3f}",
+            f"- Hybrid RRF: P@3={rrf['p']:.3f}, R@3={rrf['r']:.3f}, MRR={rrf['mrr']:.3f}",
+            f"- TF-IDF vs BM25: P@3 {pct(tfidf['p'], bm25['p'])}, R@3 {pct(tfidf['r'], bm25['r'])}, MRR {pct(tfidf['mrr'], bm25['mrr'])}",
+            f"- RRF vs BM25: P@3 {pct(rrf['p'], bm25['p'])}, R@3 {pct(rrf['r'], bm25['r'])}, MRR {pct(rrf['mrr'], bm25['mrr'])}",
+            "",
+            f"_Note: metrics on built-in eval set ({len(cases)} queries, source-doc level)._",
+            "",
+        ]
+
     report = Path(__file__).with_name("ABLATION_REPORT.md")
     lines = [
         "# Ablation Report (v0.2)",
@@ -87,12 +118,13 @@ def main() -> None:
             f"| {r['fusion']} | {r['use_query_expansion']} | {r['use_mmr']} | {r['chunks']} | "
             f"{r['p']:.3f} | {r['r']:.3f} | {r['mrr']:.3f} |"
         )
+    lines += lift_lines
     lines += [
-        "",
         "## Takeaway",
         "",
-        "- Query expansion + MMR are independent knobs on top of hybrid fusion.",
-        "- RRF remains a strong default; expansion often helps recall on short corpora.",
+        "- Always report pure BM25 / TF-IDF baselines beside hybrid fusion.",
+        "- On this set, TF-IDF can beat BM25; RRF may tie BM25 — publish the table, not a slogan.",
+        "- Query expansion + MMR trade precision; use them as tunable knobs.",
         "- Metrics aggregate at **source-document** level (chunk → source).",
         "",
     ]
@@ -111,6 +143,15 @@ def main() -> None:
         "</tr>"
         for r in rows
     )
+    lift_html = ""
+    if bm25 and tfidf:
+        lift_html = (
+            f"<p><b>Baseline:</b> BM25 P@3={bm25['p']:.3f} → TF-IDF P@3={tfidf['p']:.3f} "
+            f"({(tfidf['p']-bm25['p'])/max(bm25['p'],1e-12)*100:+.1f}%); "
+            f"R@3 {bm25['r']:.3f} → {tfidf['r']:.3f}; "
+            f"MRR {bm25['mrr']:.3f} → {tfidf['mrr']:.3f}. "
+            f"Eval cases={len(cases)}.</p>"
+        )
     html_path.write_text(
         f"""<!DOCTYPE html>
 <html><head><meta charset="utf-8"/><title>Hybrid RAG Ablation</title>
@@ -125,6 +166,7 @@ h1{{letter-spacing:-0.02em}}
 <body>
 <h1>Hybrid RAG Kit — Ablation Report</h1>
 <p>v0.2 independent retrieval stack (BM25 + TF-IDF + RRF + expansion + MMR)</p>
+{lift_html}
 <table>
 <thead><tr><th>fusion</th><th>expand</th><th>mmr</th><th>chunks</th><th>P@3</th><th>R@3</th><th>MRR</th></tr></thead>
 <tbody>{rows_html}</tbody>

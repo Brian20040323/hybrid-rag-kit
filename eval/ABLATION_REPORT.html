@@ -11,8 +11,9 @@ h1{letter-spacing:-0.02em}
 <body>
 <h1>Hybrid RAG Kit — Ablation Report</h1>
 <p>v0.2 independent retrieval stack (BM25 + TF-IDF + RRF + expansion + MMR)</p>
+<p><b>Baseline:</b> BM25 P@3=0.458 → TF-IDF P@3=0.500 (+9.1%); R@3 0.917 → 1.000; MRR 0.875 → 0.917. Eval cases=12.</p>
 <table>
 <thead><tr><th>fusion</th><th>expand</th><th>mmr</th><th>chunks</th><th>P@3</th><th>R@3</th><th>MRR</th></tr></thead>
-<tbody><tr><td>rrf</td><td>False</td><td>False</td><td>5</td><td>0.533</td><td>1.000</td><td>1.000</td></tr><tr><td>rrf</td><td>True</td><td>False</td><td>5</td><td>0.400</td><td>1.000</td><td>1.000</td></tr><tr><td>rrf</td><td>True</td><td>True</td><td>5</td><td>0.333</td><td>1.000</td><td>1.000</td></tr><tr><td>linear</td><td>True</td><td>True</td><td>5</td><td>0.400</td><td>1.000</td><td>1.000</td></tr></tbody>
+<tbody><tr><td>bm25</td><td>False</td><td>False</td><td>11</td><td>0.458</td><td>0.917</td><td>0.875</td></tr><tr><td>tfidf</td><td>False</td><td>False</td><td>11</td><td>0.500</td><td>1.000</td><td>0.917</td></tr><tr><td>rrf</td><td>False</td><td>False</td><td>11</td><td>0.458</td><td>0.917</td><td>0.875</td></tr><tr><td>rrf</td><td>True</td><td>False</td><td>11</td><td>0.361</td><td>0.833</td><td>0.792</td></tr><tr><td>rrf</td><td>True</td><td>True</td><td>11</td><td>0.347</td><td>1.000</td><td>0.847</td></tr><tr><td>linear</td><td>True</td><td>True</td><td>11</td><td>0.417</td><td>0.917</td><td>0.833</td></tr></tbody>
 </table>
 </body></html>

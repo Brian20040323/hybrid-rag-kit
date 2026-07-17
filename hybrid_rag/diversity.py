@@ -12,7 +12,10 @@ SYNONYMS = {
     "mcp": ["protocol", "tools", "resources", "协议"],
     "hybrid": ["fusion", "bm25", "rrf", "混合"],
     "eval": ["metric", "precision", "recall", "mrr", "评测"],
-    "chunk": ["chunking", "切块", "split"],
+    "sse": ["trace", "spans", "可观测", "observability", "耗时"],
+    "协议": ["mcp", "tools", "resources", "protocol"],
+    "幻觉": ["prompt", "私有", "知识库", "工具"],
+    "融合": ["hybrid", "rrf", "bm25", "tf-idf", "混合"],
 }
 
 

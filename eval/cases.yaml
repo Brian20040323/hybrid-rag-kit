@@ -9,3 +9,18 @@ cases:
     relevant: ["observability"]
   - query: "切块 chunking 与 Precision Recall 评测"
     relevant: ["rag"]
+  # harder / paraphrase — should prefer true topical docs over keyword-noisy distractors
+  - query: "没有向量数据库时稀疏与 TF-IDF 信号如何融合"
+    relevant: ["rag"]
+  - query: "倒数排名融合消融 alpha fusion"
+    relevant: ["rag"]
+  - query: "智能体思考-行动-观察多步工具循环"
+    relevant: ["react"]
+  - query: "Cursor 接入本地工具与资源列表协议"
+    relevant: ["mcp"]
+  - query: "Agent 逐步耗时 spans 运行记录可观测"
+    relevant: ["observability"]
+  - query: "向量库 Faiss Chroma embedding 索引"
+    relevant: ["vector_db"]
+  - query: "只用提示词无法访问私有知识库的幻觉问题"
+    relevant: ["prompt_only"]

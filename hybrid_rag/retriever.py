@@ -29,7 +29,7 @@ class Hit:
     meta: dict | None = None
 
 
-Fusion = Literal["linear", "rrf"]
+Fusion = Literal["linear", "rrf", "bm25", "tfidf"]
 
 
 class HybridRetriever:
@@ -100,6 +100,10 @@ class HybridRetriever:
 
             if self.fusion == "rrf":
                 score = rrf
+            elif self.fusion == "bm25":
+                score = b
+            elif self.fusion == "tfidf":
+                score = t
             else:
                 score = self.alpha * b + (1.0 - self.alpha) * t
 
