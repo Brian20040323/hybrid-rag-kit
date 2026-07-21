@@ -1,4 +1,5 @@
 # Hybrid RAG Kit
+[![CI](https://github.com/Brian20040323/hybrid-rag-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/Brian20040323/hybrid-rag-kit/actions/workflows/ci.yml)
 
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
 [![Version](https://img.shields.io/badge/version-0.2.0-blueviolet.svg)](#whats-new-in-v020)
