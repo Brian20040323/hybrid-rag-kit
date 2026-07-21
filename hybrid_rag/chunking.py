@@ -2,7 +2,15 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+
+
+@dataclass
+class ChunkConfig:
+    """Configuration for text chunking."""
+
+    chunk_size: int = 180
+    overlap: int = 40
 
 
 @dataclass
@@ -19,7 +27,11 @@ def chunk_text(
     text: str,
     chunk_size: int = 180,
     overlap: int = 40,
+    config: ChunkConfig | None = None,
 ) -> list[Chunk]:
+    if config is not None:
+        chunk_size = config.chunk_size
+        overlap = config.overlap
     text = (text or "").strip()
     if not text:
         return []
