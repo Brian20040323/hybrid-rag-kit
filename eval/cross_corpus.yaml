@@ -1,0 +1,95 @@
+# Exploratory synthetic cross-corpus smoke data (v0.3)
+# Five synthetic documents and 12 queries; not a generalization benchmark.
+
+documents:
+  # ── Domain: Medicine ──
+  - id: "medicine_covid"
+    title: "COVID-19 mRNA Vaccine Mechanism"
+    content: |
+      mRNA vaccines work by introducing a synthetic messenger RNA sequence
+      that encodes the spike protein of SARS-CoV-2. Once inside human cells,
+      ribosomes translate this mRNA into spike protein fragments displayed
+      on the cell surface, triggering an immune response without causing disease.
+      Key advantages include rapid design, cell-free manufacturing, and strong
+      T-cell and antibody responses.
+
+  # ── Domain: Finance ──
+  - id: "finance_blockchain"
+    title: "Blockchain Consensus Mechanisms"
+    content: |
+      Proof of Work (PoW) and Proof of Stake (PoS) are the two dominant
+      consensus mechanisms in blockchain networks. PoW requires miners to
+      solve cryptographic puzzles, consuming significant energy. PoS selects
+      validators based on their staked tokens, reducing energy consumption
+      by over 99%. Ethereum's transition from PoW to PoS (The Merge) in 2022
+      marked the largest such migration in cryptocurrency history.
+
+  # ── Domain: Physics ──
+  - id: "physics_quantum"
+    title: "Quantum Entanglement Basics"
+    content: |
+      Quantum entanglement occurs when two or more particles become correlated
+      such that the quantum state of each particle cannot be described
+      independently. Measuring one particle instantaneously affects the state
+      of the other, regardless of distance. This phenomenon, which Einstein
+      called "spooky action at a distance," is a cornerstone of quantum
+      computing and quantum cryptography.
+
+  # ── Domain: Biology ──
+  - id: "biology_crispr"
+    title: "CRISPR-Cas9 Gene Editing"
+    content: |
+      CRISPR-Cas9 is a revolutionary gene-editing technology adapted from
+      a bacterial immune system. It uses a guide RNA to direct the Cas9
+      enzyme to a specific DNA sequence, where it creates a double-strand
+      break. The cell's natural repair mechanisms then introduce desired
+      genetic modifications. Applications range from treating genetic
+      disorders to engineering drought-resistant crops.
+
+  # ── Domain: Computer Science ──
+  - id: "cs_transformers"
+    title: "Transformer Architecture in Deep Learning"
+    content: |
+      The Transformer architecture, introduced in "Attention Is All You Need"
+      (Vaswani et al., 2017), revolutionized natural language processing by
+      replacing recurrent neural networks with self-attention mechanisms.
+      Key components include multi-head attention, positional encoding,
+      layer normalization, and feed-forward networks. Transformers power
+      models like GPT, BERT, and Claude, enabling parallel training and
+      capturing long-range dependencies in sequences.
+
+# Cross-corpus eval cases
+cases:
+  # ── Medicine queries ──
+  - query: "How do mRNA vaccines trigger immune response?"
+    relevant: ["medicine_covid"]
+  - query: "疫苗如何产生抗体保护"
+    relevant: ["medicine_covid"]
+
+  # ── Finance queries ──
+  - query: "Proof of Stake energy efficiency vs Proof of Work"
+    relevant: ["finance_blockchain"]
+  - query: "以太坊合并后的共识机制"
+    relevant: ["finance_blockchain"]
+
+  # ── Physics queries ──
+  - query: "quantum entanglement spooky action"
+    relevant: ["physics_quantum"]
+  - query: "纠缠态的测量影响"
+    relevant: ["physics_quantum"]
+
+  # ── Biology queries ──
+  - query: "CRISPR Cas9 guide RNA mechanism"
+    relevant: ["biology_crispr"]
+  - query: "基因编辑工具如何定位DNA序列"
+    relevant: ["biology_crispr"]
+
+  # ── CS / Mixed queries ──
+  - query: "Transformer self-attention mechanism explained"
+    relevant: ["cs_transformers"]
+  - query: "multi-head attention positional encoding architecture"
+    relevant: ["cs_transformers"]
+  - query: "疫苗和基因编辑有什么共同技术基础"
+    relevant: ["medicine_covid", "biology_crispr"]
+  - query: "blockchain consensus and quantum cryptography relationship"
+    relevant: ["finance_blockchain", "physics_quantum"]

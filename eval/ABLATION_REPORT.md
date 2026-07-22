@@ -1,4 +1,4 @@
-# Ablation Report (v0.2)
+# Ablation Report (v0.3)
 
 | fusion | expand | mmr | chunks | P@3 | R@3 | MRR |
 |--------|:------:|:---:|-------:|----:|----:|----:|

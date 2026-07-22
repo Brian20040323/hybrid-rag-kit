@@ -20,6 +20,10 @@ def chunk_text(
     chunk_size: int = 180,
     overlap: int = 40,
 ) -> list[Chunk]:
+    if chunk_size <= 0:
+        raise ValueError("chunk_size must be positive")
+    if overlap < 0 or overlap >= chunk_size:
+        raise ValueError("overlap must satisfy 0 <= overlap < chunk_size")
     text = (text or "").strip()
     if not text:
         return []
@@ -29,7 +33,6 @@ def chunk_text(
     chunks: list[Chunk] = []
     i = 0
     idx = 0
-    step = max(chunk_size - overlap, 1)
     while i < len(text):
         piece = text[i : i + chunk_size]
         # prefer break on Chinese/English punctuation

@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hybrid-rag-kit"
+version = "0.3.0"
+description = "A lightweight sparse retrieval kit with optional dense rank fusion"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+dependencies = ["PyYAML>=6.0"]
+
+[project.optional-dependencies]
+dense = [
+  "numpy>=1.24",
+  "sentence-transformers>=2.2",
+]
+dev = [
+  "pytest>=8",
+  "pytest-cov>=5",
+  "ruff>=0.5",
+]
+
+[project.scripts]
+hybrid-rag = "hybrid_rag.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["hybrid_rag*"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"eval/*.py" = ["E402"]
+"examples/*.py" = ["E402"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.coverage.run]
+source = ["hybrid_rag"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 80

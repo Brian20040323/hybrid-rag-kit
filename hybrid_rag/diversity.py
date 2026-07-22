@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import math
 from .tokenize import tokenize
-
 
 SYNONYMS = {
     "rag": ["retrieval", "augmented", "generation", "检索"],

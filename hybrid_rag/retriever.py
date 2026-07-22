@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import math
 from collections import Counter
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable, Literal
+from typing import Literal
 
 from .bm25 import BM25Index
 from .tokenize import tokenize
@@ -27,6 +28,11 @@ class Hit:
     tfidf_score: float
     rrf_score: float
     meta: dict | None = None
+    dense_score: float | None = None
+    sparse_rank: int | None = None
+    dense_rank: int | None = None
+    sparse_fusion_score: float = 0.0
+    dense_fusion_score: float = 0.0
 
 
 Fusion = Literal["linear", "rrf", "bm25", "tfidf"]

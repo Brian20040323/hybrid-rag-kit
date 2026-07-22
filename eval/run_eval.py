@@ -108,7 +108,7 @@ def main() -> None:
 
     report = Path(__file__).with_name("ABLATION_REPORT.md")
     lines = [
-        "# Ablation Report (v0.2)",
+        "# Ablation Report (v0.3)",
         "",
         "| fusion | expand | mmr | chunks | P@3 | R@3 | MRR |",
         "|--------|:------:|:---:|-------:|----:|----:|----:|",
@@ -165,7 +165,7 @@ h1{{letter-spacing:-0.02em}}
 </style></head>
 <body>
 <h1>Hybrid RAG Kit — Ablation Report</h1>
-<p>v0.2 independent retrieval stack (BM25 + TF-IDF + RRF + expansion + MMR)</p>
+<p>v0.3 sparse retrieval stack (BM25 + TF-IDF + RRF + expansion + MMR)</p>
 {lift_html}
 <table>
 <thead><tr><th>fusion</th><th>expand</th><th>mmr</th><th>chunks</th><th>P@3</th><th>R@3</th><th>MRR</th></tr></thead>
