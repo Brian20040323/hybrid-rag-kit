@@ -1,41 +1,26 @@
 # Hybrid RAG Kit v0.3.0
 
+小型检索套件：分块 → BM25 + TF-IDF → 排序融合 → 查询扩展 → MMR → 抽取式引用上下文。默认走稀疏路径，无需向量库或嵌入模型。
+
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
-[![Version](https://img.shields.io/badge/version-0.3.0-blueviolet.svg)](#retrieval-modes)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![RAG](https://img.shields.io/badge/RAG-BM25%20%2B%20TF--IDF%20%2B%20RRF%20%2B%20Dense-purple.svg)](#features)
-[![Eval](https://img.shields.io/badge/eval-P%40K%20%7C%20R%40K%20%7C%20MRR%20%7C%20cross--corpus-informational.svg)](#ablation)
-[![Stars](https://img.shields.io/github/stars/Brian20040323/hybrid-rag-kit?style=social)](https://github.com/Brian20040323/hybrid-rag-kit)
 
-> A small retrieval stack: chunking → BM25 + TF-IDF → rank fusion → query
-> expansion → MMR diversity → extractive citation context. The default path is
-> sparse and needs no vector database or embedding model.
+**关联：** [lite-react-agent](https://github.com/Brian20040323/lite-react-agent) · [atlas-knowledge-agent](https://github.com/Brian20040323/atlas-knowledge-agent) · [mcp-knowledge-bridge](https://github.com/Brian20040323/mcp-knowledge-bridge)
 
-**Related:** [lite-react-agent](https://github.com/Brian20040323/lite-react-agent) · [atlas-knowledge-agent](https://github.com/Brian20040323/atlas-knowledge-agent) · [mcp-knowledge-bridge](https://github.com/Brian20040323/mcp-knowledge-bridge)
+## 检索模式
 
----
+- 默认 `fusion="rrf"`：BM25 与 TF-IDF 做 RRF 融合（全本地稀疏路径）
+- `fusion="hybrid"`：可选稀疏 + dense 二段 RRF（`pip install -e ".[dense]"`）。模型不可用时回退稀疏，并如实报告 `sparse_fallback`
 
-## Retrieval modes
-
-`RAGPipeline()` defaults to `fusion="rrf"`: BM25 and TF-IDF are fused with
-reciprocal rank fusion. This is the light, fully local sparse path.
-
-`fusion="hybrid"` explicitly enables a second sparse/dense RRF stage. Install it
-with `pip install -e ".[dense]"`. The default sentence-transformers backend may
-download `all-MiniLM-L6-v2` on first use. If the optional dependency or model is
-unavailable, the pipeline emits one warning, reports `retrieval_mode` as
-`sparse_fallback`, and uses sparse RRF. It does not report fallback output as
-dense retrieval.
-
-## Quickstart
+## 快速开始
 
 ```bash
 git clone https://github.com/Brian20040323/hybrid-rag-kit.git
 cd hybrid-rag-kit
 pip install -e .
 python -m examples.demo_search
-python eval/run_eval.py        # Ablation on built-in corpus
-python eval/run_cross_eval.py  # Exploratory synthetic cross-corpus check
+python eval/run_eval.py        # 内置语料消融
+python eval/run_cross_eval.py  # 探索性跨语料烟测
 ```
 
 ```python
@@ -46,35 +31,20 @@ pipe.ingest_dir("corpus")
 print(pipe.answer_with_citations("hybrid retrieval without vector DB")["citations"])
 ```
 
-Explicit optional dense fusion:
-
-```python
-pipe = RAGPipeline(fusion="hybrid")
-pipe.ingest_dir("corpus")
-result = pipe.answer_with_citations("semantic retrieval")
-print(result["retrieval_mode"])  # "hybrid" or "sparse_fallback"
-```
-
-The installed CLI provides the same local flow:
+CLI：
 
 ```bash
 hybrid-rag corpus "hybrid retrieval" --fusion rrf
 ```
 
-## Honest boundaries
+## 诚实边界
 
-`answer_with_citations` is an **extractive citation helper**: it returns the
-top retrieved text as an answer-shaped value and builds citation metadata. It
-does not call a language model and is not generated-answer RAG.
+- `answer_with_citations` 是**抽取式引用助手**，不调用 LLM，不是生成式 RAG
+- 消融报告请以 `eval/ABLATION_REPORT.md` 为准。常见口径：**TF-IDF 相对纯 BM25** 在内置集上 P@3/R@3 约 +9.1%；**RRF 相对 BM25 在该集上可接近 0%**——用表选型，不喊口号
+- 跨语料脚本仅为少量合成文档的烟测，不是大规模基准
+- Dense 为可选内存参考实现，不是生产向量库
 
-The cross-corpus work is exploratory: it contains only **5 synthetic documents
-and 12 queries** across five topics. It is useful as a smoke check, not a
-credible C2 benchmark or evidence of broad generalization.
-
-Dense retrieval is an optional in-memory reference implementation. It is not a
-production vector store and has not been evaluated as a dense benchmark here.
-
----
+可选：`hybrid_rag.langchain_bridge` 提供 LangChain `BaseRetriever` 适配层；核心检索不依赖 LangChain。
 
 ## License
 
